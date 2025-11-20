@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>Pantoskopik Ölçer</title>
+    
+    <style>
+        body {
+            margin: 0;
+            background: #000;
+            overflow: hidden;
+            font-family: sans-serif;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        /* Kamera Görüntüsü */
+        video {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            object-fit: cover;
+            z-index: 1;
+        }
+
+        /* Arayüz Katmanı */
+        .overlay {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 2;
+            pointer-events: none; /* Dokunmaları arkaya geçir */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Kılavuz Çizgi (Referans) */
+        .guide-line {
+            width: 80%;
+            height: 4px;
+            background-color: #0DFF72; /* Fosforlu Yeşil */
+            box-shadow: 0 0 10px #0DFF72;
+            position: absolute;
+            /* Tam ortada dursun */
+            top: 50%; left: 10%;
+            border-radius: 2px;
+        }
+
+        /* Merkez Nokta */
+        .center-dot {
+            width: 10px; height: 10px;
+            background: red;
+            border-radius: 50%;
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        /* Açı Göstergesi */
+        .angle-display {
+            position: absolute;
+            top: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px 30px;
+            border-radius: 30px;
+            border: 2px solid #0DFF72;
+            text-align: center;
+        }
+        .angle-val {
+            font-size: 40px;
+            font-weight: bold;
+            color: #fff;
+        }
+        .angle-label {
+            font-size: 12px;
+            color: #aaa;
+            margin-top: 5px;
+        }
+
+        /* Kontrol Butonları */
+        .controls {
+            position: absolute;
+            bottom: 40px;
+            z-index: 10;
+            display: flex;
+            gap: 20px;
+            pointer-events: auto; /* Tıklanabilir olsun */
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border-radius: 30px;
+            border: none;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+
+        .btn-start { background: #3877FF; color: white; }
+        .btn-freeze { background: #FF0D72; color: white; display: none; } /* Başta gizli */
+        .btn-reset { background: #444; color: white; display: none; }
+
+        /* Uyarı Mesajı */
+        .instruction {
+            position: absolute;
+            bottom: 120px;
+            background: rgba(0,0,0,0.5);
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 14px;
+            text-align: center;
+            width: 80%;
+        }
+
+        /* Yatay Tutuş Uyarısı */
+        #orientation-warning {
+            position: fixed; top:0; left:0; width:100%; height:100%;
+            background: #000; z-index: 99;
+            display: none; /* JS ile kontrol edilecek */
+            align-items: center; justify-content: center; text-align: center;
+            padding: 20px; font-size: 20px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <video id="video" autoplay playsinline muted></video>
+
+    <div class="overlay">
+        <div class="angle-display">
+            <div class="angle-val" id="angle-text">0°</div>
+            <div class="angle-label">PANTOSKOPİK AÇI</div>
+        </div>
+
+        <div class="guide-line"></div>
+        <div class="center-dot"></div>
+
+        <div class="instruction" id="msg-box">
+            1. Başla butonuna bas.<br>
+            2. Telefonu YATAY tut.<br>
+            3. Yeşil çizgiyi gözlük çerçevesine hizala.
+        </div>
+    </div>
+
+    <div class="controls">
+        <button class="btn btn-start" id="btn-start" onclick="startApp()">BAŞLAT & İZİN VER</button>
+        <button class="btn btn-freeze" id="btn-freeze" onclick="toggleFreeze()">DONDUR</button>
+    </div>
+
+    <div id="orientation-warning">
+        Lütfen ölçüm için telefonu<br>
+        🔄 YATAY (LANDSCAPE) 🔄<br>
+        konuma getiriniz.
+    </div>
+
+    <script>
+        const video = document.getElementById('video');
+        const angleText = document.getElementById('angle-text');
+        const btnStart = document.getElementById('btn-start');
+        const btnFreeze = document.getElementById('btn-freeze');
+        const msgBox = document.getElementById('msg-box');
+        
+        let currentAngle = 0;
+        let isFrozen = false; // Ekran donduruldu mu?
+
+        // --- 1. KAMERA BAŞLATMA ---
+        async function startCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: 'environment' } // Arka kamera
+                });
+                video.srcObject = stream;
+            } catch (err) {
+                alert("Kamera erişim hatası: " + err);
+            }
+        }
+
+        // --- 2. SENSÖR İZİNLERİ (iOS ÖZEL) ---
+        async function startApp() {
+            // Önce Kamerayı aç
+            await startCamera();
+
+            // Sonra Sensör İzni İste (iOS 13+)
+            if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                try {
+                    const response = await DeviceOrientationEvent.requestPermission();
+                    if (response === 'granted') {
+                        window.addEventListener('deviceorientation', handleOrientation);
+                        uiReady();
+                    } else {
+                        alert("Sensör izni verilmedi. Açı ölçülemez.");
+                    }
+                } catch (e) {
+                    alert(e);
+                }
+            } else {
+                // Android veya eski iOS (İzin gerekmez)
+                window.addEventListener('deviceorientation', handleOrientation);
+                uiReady();
+            }
+        }
+
+        function uiReady() {
+            btnStart.style.display = 'none';
+            btnFreeze.style.display = 'block';
+            msgBox.innerText = "Çizgiyi çerçevenin ön yüzüne hizala.";
+        }
+
+        // --- 3. HESAPLAMA MANTIĞI ---
+        function handleOrientation(event) {
+            if (isFrozen) return; // Dondurulmuşsa güncelleme
+
+            // Telefon YATAY tutulduğunda:
+            // 'gamma' değeri (-90 ile 90 arası) bize eğimi verir.
+            // Ancak dikey duruma göre değişebilir, genelde gamma veya beta kullanılır.
+            // Yatay modda (Landscape) yer çekimi 'gamma' üzerindedir.
+            
+            let tilt = event.gamma; 
+
+            // Bazen sensörler ters (negatif) verebilir, mutlak değer veya ofset gerekebilir.
+            // Bizim amacımız dikeyden (90 derece) sapmayı bulmak.
+            // Telefon tam dik (masada yan dururken) 0 dereceye yakın olmalı.
+            
+            // Basit kalibrasyon: Telefonu dik tuttuğunda açı 0 olmalı.
+            // Genelde sensör verisi tam dikken 0, yatarken 90 verir.
+            // Gözlükte açı genelde 5-15 derecedir.
+            
+            // Değeri yuvarla ve ekrana yaz
+            // Math.abs() kullanarak eksiyi kaldırıyoruz (yön önemli değil, açı önemli)
+            let displayAngle = Math.abs(Math.round(tilt));
+            
+            // 45 dereceden büyükse muhtemelen telefon yanlış tutuluyor
+            if(displayAngle > 45) {
+                angleText.style.color = "red";
+            } else {
+                angleText.style.color = "white";
+            }
+
+            currentAngle = displayAngle;
+            angleText.innerText = currentAngle + "°";
+        }
+
+        // --- 4. DONDURMA (FREEZE) ---
+        function toggleFreeze() {
+            isFrozen = !isFrozen;
+            if (isFrozen) {
+                btnFreeze.innerText = "DEVAM ET";
+                btnFreeze.style.backgroundColor = "#444";
+                msgBox.innerText = "Ölçüm Kaydedildi. Devam etmek için butona bas.";
+                
+                // Videoyu dondurmak mümkün değil ama efekti verebiliriz
+                video.pause(); 
+            } else {
+                btnFreeze.innerText = "DONDUR";
+                btnFreeze.style.backgroundColor = "#FF0D72";
+                msgBox.innerText = "Çizgiyi çerçevenin ön yüzüne hizala.";
+                video.play();
+            }
+        }
+
+        // --- YATAY TUTUŞ KONTROLÜ ---
+        function checkOrientation() {
+            // Ekran genişliği yükseklikten azsa (Dikey tutuş)
+            if (window.innerWidth < window.innerHeight) {
+                document.getElementById('orientation-warning').style.display = 'flex';
+            } else {
+                document.getElementById('orientation-warning').style.display = 'none';
+            }
+        }
+
+        window.addEventListener('resize', checkOrientation);
+        checkOrientation(); // Başlangıçta kontrol et
+
+    </script>
+</body>
+</html>
