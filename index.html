@@ -7,36 +7,37 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <title>Panto-Meter Pro</title>
     
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3256/3256065.png">
-    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/3256/3256065.png">
+    <link rel="apple-touch-icon" href="icon.png">
+    <link rel="icon" type="image/png" href="icon.png">
 
     <style>
         :root {
-            --primary: #2c3e50; /* Koyu Lacivert (Medikal) */
-            --accent: #3498db;  /* Güven veren Mavi */
+            --primary: #2c3e50; /* Koyu Lacivert */
+            --accent: #3498db;  /* Medikal Mavi */
             --white: #ffffff;
             --text-light: #7f8c8d;
+            --success: #27ae60; /* Onay Yeşili */
         }
 
         body {
             margin: 0;
-            background: var(--white); /* Medikal Beyaz Fon */
+            background: var(--white);
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             overflow: hidden;
             height: 100vh;
             display: flex;
             flex-direction: column;
+            user-select: none; /* Yazı seçimini engelle */
+            -webkit-user-select: none;
         }
 
-        /* --- KAMERA & ÖLÇÜM KATMANI (Başta Gizli/Arkada) --- */
+        /* --- KAMERA & ÖLÇÜM KATMANI --- */
         #measurement-layer {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 1; display: none; /* Başta görünmez */
+            z-index: 1; display: none;
         }
 
-        video {
-            width: 100%; height: 100%; object-fit: cover;
-        }
+        video { width: 100%; height: 100%; object-fit: cover; }
 
         /* Kılavuz Çizgiler */
         .guide-line {
@@ -52,70 +53,81 @@
             transform: translate(-50%, -50%);
         }
 
-        /* Açı Göstergesi */
+        /* Açı Göstergesi Kutusu */
         .angle-card {
-            position: absolute; right: 40px; top: 50%; transform: translateY(-50%);
-            background: rgba(255, 255, 255, 0.9); /* Beyazımsı yarı saydam */
-            padding: 20px; border-radius: 20px;
+            position: absolute; right: 30px; top: 50%; transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.92); /* Hafif opak beyaz */
+            padding: 20px 15px; border-radius: 16px;
             text-align: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            border: 1px solid rgba(0,0,0,0.1);
+            min-width: 100px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            border: 1px solid rgba(0,0,0,0.05);
+            backdrop-filter: blur(5px);
         }
-        .angle-val { font-size: 48px; font-weight: 800; color: var(--primary); }
-        .angle-label { font-size: 11px; color: var(--text-light); font-weight: 600; letter-spacing: 1px; margin-top: 5px; }
+        .angle-val { font-size: 42px; font-weight: 800; color: var(--primary); line-height: 1; }
+        .angle-label { font-size: 10px; color: var(--text-light); font-weight: 700; letter-spacing: 1px; margin-top: 8px; text-transform: uppercase; }
 
-        /* Kontrol Butonları */
+        /* Dondur Butonu */
         .btn-freeze {
-            position: absolute; bottom: 40px; right: 40px;
-            padding: 15px 40px; border-radius: 50px; border: none;
-            font-size: 16px; font-weight: bold; cursor: pointer;
+            position: absolute; bottom: 40px; right: 30px;
+            padding: 14px 30px; border-radius: 50px; border: none;
+            font-size: 15px; font-weight: bold; cursor: pointer;
             background: var(--primary); color: white;
             box-shadow: 0 5px 15px rgba(44, 62, 80, 0.3);
-            transition: transform 0.1s;
+            transition: transform 0.1s, background 0.3s;
+            letter-spacing: 0.5px;
         }
         .btn-freeze:active { transform: scale(0.95); }
 
-        /* Ana Menüye Dönüş Butonu */
+        /* Ev Butonu */
         .btn-home {
             position: absolute; top: 30px; left: 30px;
-            width: 50px; height: 50px; border-radius: 50%;
+            width: 45px; height: 45px; border-radius: 50%;
             background: white; border: none;
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
             display: flex; align-items: center; justify-content: center;
-            font-size: 24px; cursor: pointer; z-index: 10;
+            font-size: 22px; cursor: pointer; z-index: 10;
+            color: var(--primary);
         }
 
-        /* --- KARŞILAMA EKRANI (LANDING PAGE) --- */
+        /* --- KARŞILAMA EKRANI --- */
         #landing-page {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--white);
-            z-index: 999; /* En üstte */
+            background: var(--white); z-index: 999;
             display: flex; flex-direction: column;
             align-items: center; justify-content: center;
             text-align: center;
             transition: opacity 0.5s;
+            padding: 20px;
+            box-sizing: border-box;
         }
 
-        .logo-img { width: 80px; margin-bottom: 20px; opacity: 0.9; }
+        /* Logo Ayarı: Yatay gözlük olduğu için genişliği artırdık */
+        .logo-icon { 
+            width: 220px; 
+            height: auto; 
+            margin-bottom: 25px; 
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+        }
         
         .app-title {
-            font-size: 28px; font-weight: 800; color: var(--primary);
-            letter-spacing: -0.5px; margin-bottom: 10px;
+            font-size: 26px; font-weight: 900; color: var(--primary);
+            letter-spacing: -0.5px; margin-bottom: 8px;
         }
         .app-subtitle {
-            font-size: 14px; color: var(--text-light); max-width: 80%; line-height: 1.5;
+            font-size: 15px; color: var(--text-light); max-width: 80%; line-height: 1.4; font-weight: 400;
         }
 
-        /* Dinamik Alan (Yatay/Dikey duruma göre değişecek) */
         #dynamic-area {
-            margin-top: 50px;
-            height: 80px; /* Zıplamayı önlemek için sabit yükseklik */
+            margin-top: 60px; height: 80px;
             display: flex; align-items: center; justify-content: center;
+            width: 100%;
         }
 
         .rotate-instruction {
-            font-size: 16px; color: var(--accent); font-weight: 500;
-            display: flex; align-items: center; gap: 10px;
+            font-size: 16px; color: var(--accent); font-weight: 600;
+            display: flex; align-items: center; gap: 12px;
+            background: #f0f8ff; padding: 10px 20px; border-radius: 30px;
             animation: pulse 2s infinite;
         }
 
@@ -124,26 +136,28 @@
             font-size: 16px; font-weight: bold; cursor: pointer;
             background: linear-gradient(135deg, #3498db, #2980b9);
             color: white;
-            box-shadow: 0 10px 20px rgba(52, 152, 219, 0.3);
-            display: none; /* JS ile açılacak */
-            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 10px 25px rgba(52, 152, 219, 0.4);
+            display: none;
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            width: 80%; max-width: 300px;
         }
 
-        @keyframes pulse { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } }
-        @keyframes popIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        @keyframes pulse { 0% { opacity: 0.7; transform: scale(0.98); } 50% { opacity: 1; transform: scale(1); } 100% { opacity: 0.7; transform: scale(0.98); } }
+        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
     </style>
 </head>
 <body>
 
     <div id="landing-page">
-        <img src="https://cdn-icons-png.flaticon.com/512/3256/3256065.png" class="logo-img" alt="Logo">
+        <img src="icon.png" class="logo-icon" alt="Panto-Meter Logo" onerror="this.style.display='none'">
+        
         <div class="app-title">Panto-Meter Pro</div>
         <div class="app-subtitle">Dijital Pantoskopik Açı Ölçüm Sistemi</div>
 
         <div id="dynamic-area">
             <div id="msg-rotate" class="rotate-instruction">
-                <span>⟳</span> Lütfen telefonu yatay konuma alınız
+                <span style="font-size:20px">⟳</span> Lütfen telefonu yatay konuma alınız
             </div>
 
             <button id="btn-start" class="btn-start" onclick="requestPermissions()">
@@ -162,7 +176,7 @@
 
         <div class="angle-card">
             <div class="angle-val" id="angle-text">0°</div>
-            <div class="angle-label">AÇI DERECESİ</div>
+            <div class="angle-label">PANTOSKOPİK<br>AÇI</div>
         </div>
 
         <button class="btn-freeze" id="btn-freeze" onclick="toggleFreeze()">DONDUR</button>
@@ -182,19 +196,17 @@
         let isFrozen = false;
         let streamRef = null;
 
-        // --- 1. YATAY/DİKEY ALGILAMA MANTIĞI ---
+        // --- YÖN KONTROL ---
         function checkOrientation() {
-            // Eğer ölçüm ekranındaysak bu kontrolü yapma (rahatsız etmesin)
             if (measureLayer.style.display === 'block') return;
 
+            // Genişlik > Yükseklik ise Yataydır
             const isLandscape = window.innerWidth > window.innerHeight;
 
             if (isLandscape) {
-                // YATAY: Uyarıyı gizle, Butonu göster
                 msgRotate.style.display = 'none';
                 btnStart.style.display = 'block';
             } else {
-                // DİKEY: Uyarıyı göster, Butonu gizle
                 msgRotate.style.display = 'flex';
                 btnStart.style.display = 'none';
             }
@@ -204,36 +216,37 @@
         window.addEventListener('orientationchange', () => setTimeout(checkOrientation, 200));
         checkOrientation(); // Başlangıç kontrolü
 
-        // --- 2. İZİN VE BAŞLATMA ---
+        // --- İZİN VE BAŞLATMA ---
         async function requestPermissions() {
-            // İzin isteme (iOS)
+            // iOS İzin Kontrolü
             if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
                 try {
                     const response = await DeviceOrientationEvent.requestPermission();
                     if (response === 'granted') {
                         startApp();
                     } else {
-                        alert("İzin verilmedi.");
+                        alert("Sensör izni verilmediği için ölçüm yapılamıyor.");
                     }
                 } catch (e) {
                     alert("Hata: " + e);
                 }
             } else {
-                // Android
+                // Android / Diğer
                 startApp();
             }
         }
 
         function startApp() {
-            // Sensörü dinle
             window.addEventListener('deviceorientation', handleOrientation);
-            
-            // Kamerayı aç
             startCamera();
-
-            // Ekranları Değiştir
-            landingPage.style.display = 'none';
-            measureLayer.style.display = 'block';
+            
+            // Ekran Geçişi
+            landingPage.style.opacity = '0';
+            setTimeout(() => {
+                landingPage.style.display = 'none';
+                landingPage.style.opacity = '1';
+                measureLayer.style.display = 'block';
+            }, 500);
         }
 
         async function startCamera() {
@@ -244,56 +257,54 @@
                 streamRef = stream;
                 video.srcObject = stream;
             } catch (err) {
-                console.log("Kamera hatası: " + err);
+                console.log("Kamera başlatılamadı veya izin verilmedi.");
             }
         }
 
-        // --- 3. ANA MENÜYE DÖNÜŞ ---
+        // --- ANA MENÜYE DÖN ---
         function goHome() {
-            // Sensör dinlemeyi durdur (Pil tasarrufu)
             window.removeEventListener('deviceorientation', handleOrientation);
             
-            // Kamerayı kapat
             if (streamRef) {
                 streamRef.getTracks().forEach(track => track.stop());
             }
 
-            // Ekranları değiştir
             measureLayer.style.display = 'none';
             landingPage.style.display = 'flex';
-            
-            // Oryantasyonu tekrar kontrol et
             checkOrientation();
+            
+            // Reset Freeze
+            isFrozen = false;
+            btnFreeze.innerText = "DONDUR";
+            btnFreeze.style.backgroundColor = "#2c3e50";
         }
 
-        // --- 4. ÖLÇÜM MANTIĞI ---
+        // --- ÖLÇÜM MANTIĞI ---
         function handleOrientation(event) {
             if (isFrozen) return;
 
-            // Yatay (Landscape) modda Beta ekseni kullanılır
+            // Yatay tutuşta Beta ekseni (Roll) kullanılır
             let tilt = event.beta;
-            
-            // Yuvarla
             let angle = Math.round(tilt);
 
-            // Filtrele (Telefon masadaysa sapıtmaması için)
+            // Filtreleme (Telefon masaya koyulursa sapıtmaması için)
             if (Math.abs(angle) > 90) angle = 0;
 
-            // İşaret
+            // Artı/Eksi Gösterimi
             let displayTxt = angle + "°";
             if(angle > 0) displayTxt = "+" + displayTxt;
             
             angleText.innerText = displayTxt;
 
-            // Görsel Feedback (0 dereceyken yeşil ol)
+            // Görsel Geri Bildirim (0-2 derece arası Yeşil)
             if(Math.abs(angle) < 2) {
-                angleText.style.color = "#27ae60"; // Yeşil
+                angleText.style.color = "var(--success)";
             } else {
-                angleText.style.color = "#2c3e50"; // Lacivert
+                angleText.style.color = "var(--primary)";
             }
         }
 
-        // --- 5. DONDURMA ---
+        // --- DONDURMA ---
         function toggleFreeze() {
             isFrozen = !isFrozen;
             if (isFrozen) {
@@ -302,7 +313,7 @@
                 video.pause();
             } else {
                 btnFreeze.innerText = "DONDUR";
-                btnFreeze.style.backgroundColor = "#2c3e50"; // Lacivert
+                btnFreeze.style.backgroundColor = "var(--primary)"; // Lacivert
                 video.play();
             }
         }
