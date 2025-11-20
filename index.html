@@ -4,14 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>Pantoskopik Ölçer</title>
+    <title>Panto-Meter Pro</title>
     
     <style>
         body {
             margin: 0;
             background: #000;
             overflow: hidden;
-            font-family: sans-serif;
+            font-family: 'Segoe UI', sans-serif;
             color: white;
             display: flex;
             flex-direction: column;
@@ -20,45 +20,38 @@
             height: 100vh;
         }
 
-        /* Kamera Görüntüsü */
         video {
-            position: fixed;
-            top: 0; left: 0;
+            position: fixed; top: 0; left: 0;
             width: 100%; height: 100%;
-            object-fit: cover;
-            z-index: 1;
+            object-fit: cover; z-index: 1;
         }
 
-        /* Arayüz Katmanı */
         .overlay {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            z-index: 2;
-            pointer-events: none; /* Dokunmaları arkaya geçir */
+            position: absolute; top: 0; left: 0;
+            width: 100%; height: 100%; z-index: 2;
+            pointer-events: none;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
         }
 
-        /* Kılavuz Çizgi (Referans) */
+        /* --- YENİ: DİKEY KILAVUZ ÇİZGİ --- */
         .guide-line {
-            width: 80%;
-            height: 4px;
-            background-color: #0DFF72; /* Fosforlu Yeşil */
+            width: 4px; /* İnce */
+            height: 80%; /* Uzun (Dikey) */
+            background-color: #0DFF72;
             box-shadow: 0 0 10px #0DFF72;
             position: absolute;
-            /* Tam ortada dursun */
-            top: 50%; left: 10%;
+            top: 10%; left: 50%; /* Tam ortada */
+            transform: translateX(-50%);
             border-radius: 2px;
         }
 
         /* Merkez Nokta */
-        .center-dot {
-            width: 10px; height: 10px;
+        .center-cross {
+            width: 20px; height: 4px;
             background: red;
-            border-radius: 50%;
             position: absolute;
             top: 50%; left: 50%;
             transform: translate(-50%, -50%);
@@ -67,68 +60,45 @@
         /* Açı Göstergesi */
         .angle-display {
             position: absolute;
-            top: 20px;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 15px 30px;
-            border-radius: 30px;
+            right: 40px; /* Sağ tarafta dursun */
+            top: 50%; transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.6);
+            padding: 20px;
+            border-radius: 15px;
             border: 2px solid #0DFF72;
             text-align: center;
+            backdrop-filter: blur(5px);
         }
-        .angle-val {
-            font-size: 40px;
-            font-weight: bold;
-            color: #fff;
-        }
-        .angle-label {
-            font-size: 12px;
-            color: #aaa;
-            margin-top: 5px;
-        }
+        .angle-val { font-size: 50px; font-weight: bold; color: #fff; }
+        .angle-label { font-size: 12px; color: #ccc; margin-top: 5px; font-weight: bold; }
 
-        /* Kontrol Butonları */
+        /* Butonlar */
         .controls {
-            position: absolute;
-            bottom: 40px;
-            z-index: 10;
-            display: flex;
-            gap: 20px;
-            pointer-events: auto; /* Tıklanabilir olsun */
+            position: absolute; bottom: 30px; right: 30px;
+            z-index: 10; display: flex; gap: 20px; pointer-events: auto;
         }
 
         .btn {
-            padding: 15px 30px;
-            border-radius: 30px;
-            border: none;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            text-transform: uppercase;
+            padding: 15px 30px; border-radius: 12px; border: none;
+            font-size: 16px; font-weight: bold; cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            transition: transform 0.1s;
         }
-
+        .btn:active { transform: scale(0.95); }
         .btn-start { background: #3877FF; color: white; }
-        .btn-freeze { background: #FF0D72; color: white; display: none; } /* Başta gizli */
-        .btn-reset { background: #444; color: white; display: none; }
+        .btn-freeze { background: #FF0D72; color: white; display: none; }
 
-        /* Uyarı Mesajı */
-        .instruction {
-            position: absolute;
-            bottom: 120px;
-            background: rgba(0,0,0,0.5);
-            padding: 10px;
-            border-radius: 10px;
-            font-size: 14px;
-            text-align: center;
-            width: 80%;
-        }
-
-        /* Yatay Tutuş Uyarısı */
-        #orientation-warning {
+        /* Uyarı Ekranları */
+        #orientation-warning, #permission-screen {
             position: fixed; top:0; left:0; width:100%; height:100%;
-            background: #000; z-index: 99;
-            display: none; /* JS ile kontrol edilecek */
-            align-items: center; justify-content: center; text-align: center;
-            padding: 20px; font-size: 20px;
+            background: #111; z-index: 99;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            text-align: center; padding: 20px;
         }
+        
+        .warn-icon { font-size: 60px; margin-bottom: 20px; }
+        .warn-text { font-size: 20px; line-height: 1.5; color: #eee; }
 
     </style>
 </head>
@@ -139,41 +109,102 @@
     <div class="overlay">
         <div class="angle-display">
             <div class="angle-val" id="angle-text">0°</div>
-            <div class="angle-label">PANTOSKOPİK AÇI</div>
+            <div class="angle-label">AÇI</div>
         </div>
 
         <div class="guide-line"></div>
-        <div class="center-dot"></div>
-
-        <div class="instruction" id="msg-box">
-            1. Başla butonuna bas.<br>
-            2. Telefonu YATAY tut.<br>
-            3. Yeşil çizgiyi gözlük çerçevesine hizala.
-        </div>
+        <div class="center-cross"></div>
     </div>
 
     <div class="controls">
-        <button class="btn btn-start" id="btn-start" onclick="startApp()">BAŞLAT & İZİN VER</button>
         <button class="btn btn-freeze" id="btn-freeze" onclick="toggleFreeze()">DONDUR</button>
     </div>
 
-    <div id="orientation-warning">
-        Lütfen ölçüm için telefonu<br>
-        🔄 YATAY (LANDSCAPE) 🔄<br>
-        konuma getiriniz.
+    <div id="orientation-warning" style="display:flex;">
+        <div class="warn-icon">🔄</div>
+        <div class="warn-text">
+            Lütfen ölçüm için telefonu<br>
+            <b style="color:#0DFF72">YAN ÇEVİRİN</b>
+        </div>
+    </div>
+
+    <div id="permission-screen" style="display:none;">
+        <div class="warn-icon">📐</div>
+        <div class="warn-text" style="margin-bottom:30px">
+            Pantoskopik Ölçer Hazır.<br>
+            Sensörleri aktif etmek için butona bas.
+        </div>
+        <button class="btn btn-start" onclick="requestPermissions()">BAŞLAT & İZİN VER</button>
+        <div style="font-size:12px; color:#666; margin-top:20px; max-width:300px;">
+            Not: Apple gizlilik kuralları gereği bu izni her seferinde vermeniz gerekmektedir.
+        </div>
     </div>
 
     <script>
         const video = document.getElementById('video');
         const angleText = document.getElementById('angle-text');
-        const btnStart = document.getElementById('btn-start');
         const btnFreeze = document.getElementById('btn-freeze');
-        const msgBox = document.getElementById('msg-box');
         
+        const screenOrient = document.getElementById('orientation-warning');
+        const screenPerm = document.getElementById('permission-screen');
+
         let currentAngle = 0;
         let isFrozen = false; 
 
-        // --- KAMERA FONKSİYONU ---
+        // --- YÖN KONTROLÜ (Bug Fix) ---
+        function checkOrientation() {
+            // Ekran genişliği > yüksekliği ise YATAYDIR
+            if (window.innerWidth > window.innerHeight) {
+                screenOrient.style.display = 'none';
+                // Eğer izin alınmadıysa İzin Ekranını göster
+                if (!window.permissionGranted) {
+                    screenPerm.style.display = 'flex';
+                }
+            } else {
+                // Dikeyse uyar
+                screenOrient.style.display = 'flex';
+                screenPerm.style.display = 'none';
+            }
+        }
+
+        // Resize ve OrientationChange eventlerini dinle (Hızlı tepki için)
+        window.addEventListener('resize', checkOrientation);
+        window.addEventListener('orientationchange', () => {
+            setTimeout(checkOrientation, 200); // iOS bazen gecikir
+        });
+        
+        // Başlangıç kontrolü
+        checkOrientation();
+
+
+        // --- İZİN VE BAŞLATMA ---
+        async function requestPermissions() {
+            // 1. Sensör İzni
+            if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                try {
+                    const response = await DeviceOrientationEvent.requestPermission();
+                    if (response === 'granted') {
+                        window.permissionGranted = true;
+                        window.addEventListener('deviceorientation', handleOrientation);
+                        screenPerm.style.display = 'none';
+                        btnFreeze.style.display = 'block';
+                        startCamera();
+                    } else {
+                        alert("İzin verilmedi.");
+                    }
+                } catch (e) {
+                    alert(e);
+                }
+            } else {
+                // Android
+                window.permissionGranted = true;
+                window.addEventListener('deviceorientation', handleOrientation);
+                screenPerm.style.display = 'none';
+                btnFreeze.style.display = 'block';
+                startCamera();
+            }
+        }
+
         async function startCamera() {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ 
@@ -181,65 +212,45 @@
                 });
                 video.srcObject = stream;
             } catch (err) {
-                alert("Kamera hatası: " + err);
+                console.log("Kamera hatası: " + err);
             }
         }
 
-        // --- BAŞLATMA FONKSİYONU (DÜZELTİLDİ) ---
-        async function startApp() {
-            // 1. ADIM: ÖNCE SENSÖR İZNİ (iOS Kritik Nokta)
-            // iOS, butona basılır basılmaz bu kodun çalışmasını ister.
-            if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-                try {
-                    const response = await DeviceOrientationEvent.requestPermission();
-                    if (response === 'granted') {
-                        window.addEventListener('deviceorientation', handleOrientation);
-                    } else {
-                        alert("Sensör izni reddedildi.");
-                        return; // İzin yoksa devam etme
-                    }
-                } catch (e) {
-                    alert("Hata: " + e);
-                    return;
-                }
-            } else {
-                // Android veya eski cihazlar için direkt dinle
-                window.addEventListener('deviceorientation', handleOrientation);
-            }
-
-            // 2. ADIM: İZİNLER TAMAMSA KAMERAYI AÇ
-            await startCamera();
-            uiReady();
-        }
-
-        function uiReady() {
-            btnStart.style.display = 'none';
-            btnFreeze.style.display = 'block';
-            msgBox.innerText = "Çizgiyi çerçevenin ön yüzüne hizala.";
-        }
-
-        // --- AÇI HESAPLAMA ---
+        // --- AÇI HESAPLAMA (YENİ MANTIK: DİKEY ÇİZGİ) ---
         function handleOrientation(event) {
             if (isFrozen) return;
 
-            // Telefon yatay (Landscape) tutulduğunda eğim 'gamma' veya 'beta' olabilir.
-            // Cihazdan cihaza değişebilir ama genelde Gamma eksenidir.
-            let tilt = event.gamma; 
+            // Telefon YATAY (Landscape) tutuluyor.
+            // Bu konumda telefonu direksiyon gibi (sağa/sola) çevirmek 'beta' değerini değiştirir.
+            // Beta: -180 ile 180 arasındadır.
+            // Telefon tam dikken (yerçekimine paralel) beta ~0 olmalı (veya cihaza göre değişebilir).
             
-            // Eğer sonuç saçma gelirse (90 derece fark varsa) burayı 'event.beta' yapabiliriz.
-            // Ama çoğu modern tarayıcıda yatay modda gamma çalışır.
+            let tilt = event.beta; 
+            
+            // iOS ve Android farkı için ufak bir kontrol gerekebilir ama
+            // Genelde Beta ekseni yatay tutuşta roll (yuvarlanma) eksenidir.
 
-            let displayAngle = Math.abs(Math.round(tilt));
-            
-            // Renk uyarısı
-            if(displayAngle > 45) {
-                angleText.style.color = "red";
-            } else {
-                angleText.style.color = "white";
+            // İstenilen Mantık: Sola (-) Sağa (+)
+            // Değer yuvarlama
+            let angle = Math.round(tilt);
+
+            // Açı çok sapıtırsa (telefonu masaya koyarsan gamma devreye girer) filtrele
+            if (Math.abs(angle) > 90) {
+                // Bazen sensör 180'den döner, düzeltme:
+                angle = 0; 
             }
 
-            currentAngle = displayAngle;
-            angleText.innerText = currentAngle + "°";
+            currentAngle = angle;
+            
+            // Artı işareti ekle
+            let displayTxt = currentAngle + "°";
+            if(currentAngle > 0) displayTxt = "+" + displayTxt;
+            
+            angleText.innerText = displayTxt;
+
+            // Renk: 0'a yakınsa yeşil, uzaklaştıkça beyaz
+            if(Math.abs(currentAngle) < 2) angleText.style.color = "#0DFF72";
+            else angleText.style.color = "white";
         }
 
         // --- DONDURMA ---
@@ -248,28 +259,13 @@
             if (isFrozen) {
                 btnFreeze.innerText = "DEVAM ET";
                 btnFreeze.style.backgroundColor = "#444";
-                msgBox.innerText = "Ölçüm Kaydedildi.";
                 video.pause();
             } else {
                 btnFreeze.innerText = "DONDUR";
                 btnFreeze.style.backgroundColor = "#FF0D72";
-                msgBox.innerText = "Çizgiyi çerçevenin ön yüzüne hizala.";
                 video.play();
             }
         }
-
-        // --- YATAY TUTUŞ UYARISI ---
-        function checkOrientation() {
-            if (window.innerWidth < window.innerHeight) {
-                document.getElementById('orientation-warning').style.display = 'flex';
-            } else {
-                document.getElementById('orientation-warning').style.display = 'none';
-            }
-        }
-
-        window.addEventListener('resize', checkOrientation);
-        checkOrientation(); 
-
     </script>
 </body>
 </html>
