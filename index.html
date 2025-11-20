@@ -7,20 +7,21 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <title>Panto-Meter Pro</title>
     
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3256/3256065.png">
-    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/3256/3256065.png">
+    <link rel="apple-touch-icon" href="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%20512%20512%27%20style%3D%27background-color%3Awhite%27%3E%3Cg%20transform%3D%27translate%28256%20256%29%20rotate%2845%29%20translate%28-256%20-256%29%27%3E%3Cpath%20d%3D%27M100%20200%20h110%20a40%2040%200%200%201%2040%2040%20v60%20a40%2040%200%200%201%20-40%2040%20h-110%20a40%2040%200%200%201%20-40%20-40%20v-60%20a40%2040%200%200%201%2040%20-40%20z%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%2725%27%2F%3E%3Cpath%20d%3D%27M302%20200%20h110%20a40%2040%200%200%201%2040%2040%20v60%20a40%2040%200%200%201%20-40%2040%20h-110%20a40%2040%200%200%201%20-40%20-40%20v-60%20a40%2040%200%200%201%2040%20-40%20z%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%2725%27%2F%3E%3Cline%20x1%3D%27250%27%20y1%3D%27240%27%20x2%3D%27302%27%20y2%3D%27240%27%20stroke%3D%27black%27%20stroke-width%3D%2725%27%2F%3E%3C%2Fg%3E%3Ctext%20x%3D%27380%27%20y%3D%27100%27%20font-family%3D%27Arial%27%20font-weight%3D%27bold%27%20font-size%3D%27150%27%20fill%3D%27black%27%3E%2B%3C%2Ftext%3E%3Ctext%20x%3D%2750%27%20y%3D%27450%27%20font-family%3D%27Arial%27%20font-weight%3D%27bold%27%20font-size%3D%27180%27%20fill%3D%27black%27%3E-%3C%2Ftext%3E%3C%2Fsvg%3E">
+    
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%20512%20512%27%20style%3D%27background-color%3Awhite%27%3E%3Cg%20transform%3D%27translate%28256%20256%29%20rotate%2845%29%20translate%28-256%20-256%29%27%3E%3Cpath%20d%3D%27M100%20200%20h110%20a40%2040%200%200%201%2040%2040%20v60%20a40%2040%200%200%201%20-40%2040%20h-110%20a40%2040%200%200%201%20-40%20-40%20v-60%20a40%2040%200%200%201%2040%20-40%20z%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%2725%27%2F%3E%3Cpath%20d%3D%27M302%20200%20h110%20a40%2040%200%200%201%2040%2040%20v60%20a40%2040%200%200%201%20-40%2040%20h-110%20a40%2040%200%200%201%20-40%20-40%20v-60%20a40%2040%200%200%201%2040%20-40%20z%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%2725%27%2F%3E%3Cline%20x1%3D%27250%27%20y1%3D%27240%27%20x2%3D%27302%27%20y2%3D%27240%27%20stroke%3D%27black%27%20stroke-width%3D%2725%27%2F%3E%3C%2Fg%3E%3Ctext%20x%3D%27380%27%20y%3D%27100%27%20font-family%3D%27Arial%27%20font-weight%3D%27bold%27%20font-size%3D%27150%27%20fill%3D%27black%27%3E%2B%3C%2Ftext%3E%3Ctext%20x%3D%2750%27%20y%3D%27450%27%20font-family%3D%27Arial%27%20font-weight%3D%27bold%27%20font-size%3D%27180%27%20fill%3D%27black%27%3E-%3C%2Ftext%3E%3C%2Fsvg%3E">
 
     <style>
         :root {
-            --primary: #2c3e50; /* Koyu Lacivert (Medikal) */
-            --accent: #3498db;  /* Güven veren Mavi */
+            --primary: #2c3e50;
+            --accent: #3498db;
             --white: #ffffff;
             --text-light: #7f8c8d;
         }
 
         body {
             margin: 0;
-            background: var(--white); /* Medikal Beyaz Fon */
+            background: var(--white);
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             overflow: hidden;
             height: 100vh;
@@ -28,17 +29,14 @@
             flex-direction: column;
         }
 
-        /* --- KAMERA & ÖLÇÜM KATMANI (Başta Gizli/Arkada) --- */
+        /* --- KAMERA & ÖLÇÜM KATMANI --- */
         #measurement-layer {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 1; display: none; /* Başta görünmez */
+            z-index: 1; display: none;
         }
 
-        video {
-            width: 100%; height: 100%; object-fit: cover;
-        }
+        video { width: 100%; height: 100%; object-fit: cover; }
 
-        /* Kılavuz Çizgiler */
         .guide-line {
             width: 4px; height: 80%;
             background-color: #00ff88;
@@ -52,10 +50,9 @@
             transform: translate(-50%, -50%);
         }
 
-        /* Açı Göstergesi */
         .angle-card {
             position: absolute; right: 40px; top: 50%; transform: translateY(-50%);
-            background: rgba(255, 255, 255, 0.9); /* Beyazımsı yarı saydam */
+            background: rgba(255, 255, 255, 0.9);
             padding: 20px; border-radius: 20px;
             text-align: center;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
@@ -64,7 +61,6 @@
         .angle-val { font-size: 48px; font-weight: 800; color: var(--primary); }
         .angle-label { font-size: 11px; color: var(--text-light); font-weight: 600; letter-spacing: 1px; margin-top: 5px; }
 
-        /* Kontrol Butonları */
         .btn-freeze {
             position: absolute; bottom: 40px; right: 40px;
             padding: 15px 40px; border-radius: 50px; border: none;
@@ -75,7 +71,6 @@
         }
         .btn-freeze:active { transform: scale(0.95); }
 
-        /* Ana Menüye Dönüş Butonu */
         .btn-home {
             position: absolute; top: 30px; left: 30px;
             width: 50px; height: 50px; border-radius: 50%;
@@ -85,18 +80,18 @@
             font-size: 24px; cursor: pointer; z-index: 10;
         }
 
-        /* --- KARŞILAMA EKRANI (LANDING PAGE) --- */
+        /* --- KARŞILAMA EKRANI --- */
         #landing-page {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--white);
-            z-index: 999; /* En üstte */
+            background: var(--white); z-index: 999;
             display: flex; flex-direction: column;
             align-items: center; justify-content: center;
             text-align: center;
             transition: opacity 0.5s;
         }
 
-        .logo-img { width: 80px; margin-bottom: 20px; opacity: 0.9; }
+        /* Logo Yerine SVG İkonu Göster */
+        .logo-icon { width: 120px; height: 120px; margin-bottom: 20px; opacity: 0.9; }
         
         .app-title {
             font-size: 28px; font-weight: 800; color: var(--primary);
@@ -106,10 +101,8 @@
             font-size: 14px; color: var(--text-light); max-width: 80%; line-height: 1.5;
         }
 
-        /* Dinamik Alan (Yatay/Dikey duruma göre değişecek) */
         #dynamic-area {
-            margin-top: 50px;
-            height: 80px; /* Zıplamayı önlemek için sabit yükseklik */
+            margin-top: 50px; height: 80px;
             display: flex; align-items: center; justify-content: center;
         }
 
@@ -125,7 +118,7 @@
             background: linear-gradient(135deg, #3498db, #2980b9);
             color: white;
             box-shadow: 0 10px 20px rgba(52, 152, 219, 0.3);
-            display: none; /* JS ile açılacak */
+            display: none;
             animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
@@ -137,7 +130,8 @@
 <body>
 
     <div id="landing-page">
-        <img src="https://cdn-icons-png.flaticon.com/512/3256/3256065.png" class="logo-img" alt="Logo">
+        <img src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%20512%20512%27%3E%3Cg%20transform%3D%27translate%28256%20256%29%20rotate%2845%29%20translate%28-256%20-256%29%27%3E%3Cpath%20d%3D%27M100%20200%20h110%20a40%2040%200%200%201%2040%2040%20v60%20a40%2040%200%200%201%20-40%2040%20h-110%20a40%2040%200%200%201%20-40%20-40%20v-60%20a40%2040%200%200%201%2040%20-40%20z%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%2725%27%2F%3E%3Cpath%20d%3D%27M302%20200%20h110%20a40%2040%200%200%201%2040%2040%20v60%20a40%2040%200%200%201%20-40%2040%20h-110%20a40%2040%200%200%201%20-40%20-40%20v-60%20a40%2040%200%200%201%2040%20-40%20z%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%2725%27%2F%3E%3Cline%20x1%3D%27250%27%20y1%3D%27240%27%20x2%3D%27302%27%20y2%3D%27240%27%20stroke%3D%27black%27%20stroke-width%3D%2725%27%2F%3E%3C%2Fg%3E%3Ctext%20x%3D%27380%27%20y%3D%27100%27%20font-family%3D%27Arial%27%20font-weight%3D%27bold%27%20font-size%3D%27150%27%20fill%3D%27black%27%3E%2B%3C%2Ftext%3E%3Ctext%20x%3D%2750%27%20y%3D%27450%27%20font-family%3D%27Arial%27%20font-weight%3D%27bold%27%20font-size%3D%27180%27%20fill%3D%27black%27%3E-%3C%2Ftext%3E%3C%2Fsvg%3E" class="logo-icon">
+        
         <div class="app-title">Panto-Meter Pro</div>
         <div class="app-subtitle">Dijital Pantoskopik Açı Ölçüm Sistemi</div>
 
@@ -182,19 +176,16 @@
         let isFrozen = false;
         let streamRef = null;
 
-        // --- 1. YATAY/DİKEY ALGILAMA MANTIĞI ---
+        // --- YÖN KONTROL ---
         function checkOrientation() {
-            // Eğer ölçüm ekranındaysak bu kontrolü yapma (rahatsız etmesin)
             if (measureLayer.style.display === 'block') return;
 
             const isLandscape = window.innerWidth > window.innerHeight;
 
             if (isLandscape) {
-                // YATAY: Uyarıyı gizle, Butonu göster
                 msgRotate.style.display = 'none';
                 btnStart.style.display = 'block';
             } else {
-                // DİKEY: Uyarıyı göster, Butonu gizle
                 msgRotate.style.display = 'flex';
                 btnStart.style.display = 'none';
             }
@@ -202,11 +193,10 @@
 
         window.addEventListener('resize', checkOrientation);
         window.addEventListener('orientationchange', () => setTimeout(checkOrientation, 200));
-        checkOrientation(); // Başlangıç kontrolü
+        checkOrientation();
 
-        // --- 2. İZİN VE BAŞLATMA ---
+        // --- BAŞLATMA ---
         async function requestPermissions() {
-            // İzin isteme (iOS)
             if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
                 try {
                     const response = await DeviceOrientationEvent.requestPermission();
@@ -219,19 +209,13 @@
                     alert("Hata: " + e);
                 }
             } else {
-                // Android
                 startApp();
             }
         }
 
         function startApp() {
-            // Sensörü dinle
             window.addEventListener('deviceorientation', handleOrientation);
-            
-            // Kamerayı aç
             startCamera();
-
-            // Ekranları Değiştir
             landingPage.style.display = 'none';
             measureLayer.style.display = 'block';
         }
@@ -244,65 +228,54 @@
                 streamRef = stream;
                 video.srcObject = stream;
             } catch (err) {
-                console.log("Kamera hatası: " + err);
+                console.log("Kamera hatası");
             }
         }
 
-        // --- 3. ANA MENÜYE DÖNÜŞ ---
+        // --- ANA MENÜYE DÖN ---
         function goHome() {
-            // Sensör dinlemeyi durdur (Pil tasarrufu)
             window.removeEventListener('deviceorientation', handleOrientation);
             
-            // Kamerayı kapat
             if (streamRef) {
                 streamRef.getTracks().forEach(track => track.stop());
             }
 
-            // Ekranları değiştir
             measureLayer.style.display = 'none';
             landingPage.style.display = 'flex';
-            
-            // Oryantasyonu tekrar kontrol et
             checkOrientation();
         }
 
-        // --- 4. ÖLÇÜM MANTIĞI ---
+        // --- ÖLÇÜM ---
         function handleOrientation(event) {
             if (isFrozen) return;
 
-            // Yatay (Landscape) modda Beta ekseni kullanılır
             let tilt = event.beta;
-            
-            // Yuvarla
             let angle = Math.round(tilt);
 
-            // Filtrele (Telefon masadaysa sapıtmaması için)
             if (Math.abs(angle) > 90) angle = 0;
 
-            // İşaret
             let displayTxt = angle + "°";
             if(angle > 0) displayTxt = "+" + displayTxt;
             
             angleText.innerText = displayTxt;
 
-            // Görsel Feedback (0 dereceyken yeşil ol)
             if(Math.abs(angle) < 2) {
-                angleText.style.color = "#27ae60"; // Yeşil
+                angleText.style.color = "#27ae60";
             } else {
-                angleText.style.color = "#2c3e50"; // Lacivert
+                angleText.style.color = "#2c3e50";
             }
         }
 
-        // --- 5. DONDURMA ---
+        // --- DONDURMA ---
         function toggleFreeze() {
             isFrozen = !isFrozen;
             if (isFrozen) {
                 btnFreeze.innerText = "DEVAM ET";
-                btnFreeze.style.backgroundColor = "#7f8c8d"; // Gri
+                btnFreeze.style.backgroundColor = "#7f8c8d";
                 video.pause();
             } else {
                 btnFreeze.innerText = "DONDUR";
-                btnFreeze.style.backgroundColor = "#2c3e50"; // Lacivert
+                btnFreeze.style.backgroundColor = "#2c3e50";
                 video.play();
             }
         }
