@@ -171,43 +171,45 @@
         const msgBox = document.getElementById('msg-box');
         
         let currentAngle = 0;
-        let isFrozen = false; // Ekran donduruldu mu?
+        let isFrozen = false; 
 
-        // --- 1. KAMERA BAŞLATMA ---
+        // --- KAMERA FONKSİYONU ---
         async function startCamera() {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { facingMode: 'environment' } // Arka kamera
+                    video: { facingMode: 'environment' } 
                 });
                 video.srcObject = stream;
             } catch (err) {
-                alert("Kamera erişim hatası: " + err);
+                alert("Kamera hatası: " + err);
             }
         }
 
-        // --- 2. SENSÖR İZİNLERİ (iOS ÖZEL) ---
+        // --- BAŞLATMA FONKSİYONU (DÜZELTİLDİ) ---
         async function startApp() {
-            // Önce Kamerayı aç
-            await startCamera();
-
-            // Sonra Sensör İzni İste (iOS 13+)
+            // 1. ADIM: ÖNCE SENSÖR İZNİ (iOS Kritik Nokta)
+            // iOS, butona basılır basılmaz bu kodun çalışmasını ister.
             if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
                 try {
                     const response = await DeviceOrientationEvent.requestPermission();
                     if (response === 'granted') {
                         window.addEventListener('deviceorientation', handleOrientation);
-                        uiReady();
                     } else {
-                        alert("Sensör izni verilmedi. Açı ölçülemez.");
+                        alert("Sensör izni reddedildi.");
+                        return; // İzin yoksa devam etme
                     }
                 } catch (e) {
-                    alert(e);
+                    alert("Hata: " + e);
+                    return;
                 }
             } else {
-                // Android veya eski iOS (İzin gerekmez)
+                // Android veya eski cihazlar için direkt dinle
                 window.addEventListener('deviceorientation', handleOrientation);
-                uiReady();
             }
+
+            // 2. ADIM: İZİNLER TAMAMSA KAMERAYI AÇ
+            await startCamera();
+            uiReady();
         }
 
         function uiReady() {
@@ -216,30 +218,20 @@
             msgBox.innerText = "Çizgiyi çerçevenin ön yüzüne hizala.";
         }
 
-        // --- 3. HESAPLAMA MANTIĞI ---
+        // --- AÇI HESAPLAMA ---
         function handleOrientation(event) {
-            if (isFrozen) return; // Dondurulmuşsa güncelleme
+            if (isFrozen) return;
 
-            // Telefon YATAY tutulduğunda:
-            // 'gamma' değeri (-90 ile 90 arası) bize eğimi verir.
-            // Ancak dikey duruma göre değişebilir, genelde gamma veya beta kullanılır.
-            // Yatay modda (Landscape) yer çekimi 'gamma' üzerindedir.
-            
+            // Telefon yatay (Landscape) tutulduğunda eğim 'gamma' veya 'beta' olabilir.
+            // Cihazdan cihaza değişebilir ama genelde Gamma eksenidir.
             let tilt = event.gamma; 
+            
+            // Eğer sonuç saçma gelirse (90 derece fark varsa) burayı 'event.beta' yapabiliriz.
+            // Ama çoğu modern tarayıcıda yatay modda gamma çalışır.
 
-            // Bazen sensörler ters (negatif) verebilir, mutlak değer veya ofset gerekebilir.
-            // Bizim amacımız dikeyden (90 derece) sapmayı bulmak.
-            // Telefon tam dik (masada yan dururken) 0 dereceye yakın olmalı.
-            
-            // Basit kalibrasyon: Telefonu dik tuttuğunda açı 0 olmalı.
-            // Genelde sensör verisi tam dikken 0, yatarken 90 verir.
-            // Gözlükte açı genelde 5-15 derecedir.
-            
-            // Değeri yuvarla ve ekrana yaz
-            // Math.abs() kullanarak eksiyi kaldırıyoruz (yön önemli değil, açı önemli)
             let displayAngle = Math.abs(Math.round(tilt));
             
-            // 45 dereceden büyükse muhtemelen telefon yanlış tutuluyor
+            // Renk uyarısı
             if(displayAngle > 45) {
                 angleText.style.color = "red";
             } else {
@@ -250,16 +242,14 @@
             angleText.innerText = currentAngle + "°";
         }
 
-        // --- 4. DONDURMA (FREEZE) ---
+        // --- DONDURMA ---
         function toggleFreeze() {
             isFrozen = !isFrozen;
             if (isFrozen) {
                 btnFreeze.innerText = "DEVAM ET";
                 btnFreeze.style.backgroundColor = "#444";
-                msgBox.innerText = "Ölçüm Kaydedildi. Devam etmek için butona bas.";
-                
-                // Videoyu dondurmak mümkün değil ama efekti verebiliriz
-                video.pause(); 
+                msgBox.innerText = "Ölçüm Kaydedildi.";
+                video.pause();
             } else {
                 btnFreeze.innerText = "DONDUR";
                 btnFreeze.style.backgroundColor = "#FF0D72";
@@ -268,9 +258,8 @@
             }
         }
 
-        // --- YATAY TUTUŞ KONTROLÜ ---
+        // --- YATAY TUTUŞ UYARISI ---
         function checkOrientation() {
-            // Ekran genişliği yükseklikten azsa (Dikey tutuş)
             if (window.innerWidth < window.innerHeight) {
                 document.getElementById('orientation-warning').style.display = 'flex';
             } else {
@@ -279,7 +268,7 @@
         }
 
         window.addEventListener('resize', checkOrientation);
-        checkOrientation(); // Başlangıçta kontrol et
+        checkOrientation(); 
 
     </script>
 </body>
